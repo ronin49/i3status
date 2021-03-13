@@ -9,8 +9,9 @@
 #include <yajl/yajl_version.h>
 
 #include "i3status.h"
+#include "../gradient/gradient.h"
 
-#define STRING_SIZE 50
+#define STRING_SIZE 500
 
 static bool local_timezone_init = false;
 static const char *local_timezone = NULL;
@@ -80,7 +81,28 @@ void print_time(yajl_gen json_gen, char *buffer, const char *title, const char *
 
 out:
     *outwalk = '\0';
-    OUTPUT_FULL_TEXT(buffer);
+    char colored_time[256] = "<span background='#";//123456
+    char * c;
+#define VOSHOD 6
+#define ZAKAT 19
+#define VOSHOD_COLOR YELLOW
+#define POLDEN_COLOR WHITE
+#define ZAKAT_COLOR RED
+    if(tm.tm_hour < VOSHOD || tm.tm_hour > ZAKAT)
+        c = hex(BLACK);
+    else {
+        double polovina = (ZAKAT+VOSHOD)/2;
+        if(tm.tm_hour < polovina)
+            c = hex(gradient(VOSHOD*60*60,VOSHOD_COLOR,polovina*60*60,POLDEN_COLOR,tm.tm_hour*60*60+tm.tm_min*60+tm.tm_sec));
+        else
+            c = hex(gradient(polovina*60*60,POLDEN_COLOR,ZAKAT*60*60,ZAKAT_COLOR,tm.tm_hour*60*60+tm.tm_min*60+tm.tm_sec));
+    }
+    strcat(colored_time,c);
+    free(c);
+    strcat(colored_time,"'>");
+    strcat(colored_time,buffer);
+    strcat(colored_time,"</span>");
+    OUTPUT_FULL_TEXT(colored_time);
     if (format_time != NULL) {
         free(buffer);
     }
